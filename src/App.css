@@ -1,0 +1,223 @@
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #777387;
+  padding: 30px;
+}
+
+.signup-card {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 580px;
+  background: #211d2d;
+  border-radius: 24px;
+  overflow: hidden;
+  color: white;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Left panel with landscape image */
+.left-panel {
+  width: 45%;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #321078, #8b28d9, #171044);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.landscape-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-text {
+  position: relative;
+  z-index: 1;
+  padding: 25px;
+  text-align: center;
+  background: linear-gradient(
+    transparent,
+    rgba(23, 16, 68, 0.85)
+  );
+}
+
+.left-panel h1 {
+  font-size: 38px;
+  margin-bottom: 15px;
+}
+
+.left-panel p {
+  color: #e1d7ff;
+  font-size: 17px;
+}
+
+/* Right signup form */
+.right-panel {
+  flex: 1;
+  min-width: 0;
+  padding: 55px 45px;
+}
+
+.right-panel h2 {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+
+.login-text {
+  color: #aaa4bd;
+  margin-bottom: 30px;
+}
+
+a {
+  color: #bb65ff;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.name-fields {
+  display: flex;
+  gap: 12px;
+}
+
+.name-fields input {
+  width: 50%;
+  min-width: 0;
+}
+
+form > input,
+.name-fields input {
+  padding: 14px;
+  border: 1px solid #514966;
+  border-radius: 8px;
+  background: #302a40;
+  color: white;
+  font-size: 15px;
+}
+
+form input::placeholder {
+  color: #aaa4bd;
+}
+.forgot-password {
+  text-align: right;
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+
+.forgot-password a {
+  color: #ff7043;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+.terms {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #eeeaf6;
+}
+
+.terms input {
+  accent-color: #a12ff0;
+}
+
+form > button {
+  padding: 15px;
+  background: linear-gradient(90deg, #b43ce9, #7735f5);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.register-text {
+  text-align: center;
+  margin: 25px 0 18px;
+  color: #aaa4bd;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.social-icon {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+}
+
+.social-buttons button {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 12px;
+  border: 1px solid #777087;
+  border-radius: 8px;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 400;
+}
+
+
+@media (max-width: 700px) {
+  .signup-page {
+    padding: 15px;
+  }
+
+  .signup-card {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    width: 100%;
+    min-height: 180px;
+  }
+
+  .left-panel h1 {
+    font-size: 30px;
+  }
+
+  .right-panel {
+    padding: 30px 22px;
+  }
+
+  .right-panel h2 {
+    font-size: 25px;
+  }
+}

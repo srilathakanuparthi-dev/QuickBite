@@ -1,0 +1,142 @@
+
+.contact-section {
+  padding: 55px 7%;
+  background: #fffaf5;
+  color: #29231f;
+  min-height: 70vh;
+}
+
+.contact-heading {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto 40px;
+}
+
+.contact-subtitle {
+  color: #f07832;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+}
+
+.contact-heading h1 {
+  font-size: clamp(30px, 4vw, 44px);
+  margin-bottom: 15px;
+  color:#d95d1b
+}
+
+.contact-heading > p:last-child {
+  color: #716a64;
+  line-height: 1.8;
+}
+
+.contact-container {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 35px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.contact-info,
+.contact-form {
+  padding: 30px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid #f0e6dc;
+}
+
+.contact-info h2 {
+  margin-bottom: 12px;
+  color:#d95d1b
+}
+
+.contact-info > p {
+  color: #716a64;
+  line-height: 1.8;
+  margin-bottom: 30px;
+}
+
+.contact-item {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-top: 25px;
+}
+
+.contact-item > span {
+  font-size: 25px;
+}
+
+.contact-item h3 {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.contact-item p {
+  color: #716a64;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-form label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #e5ddd4;
+  border-radius: 8px;
+  font: inherit;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: #f07832;
+}
+
+.contact-form textarea {
+  resize: vertical;
+}
+
+.contact-form button {
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #f07832;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.contact-form button:hover {
+  background: #d95d1b;
+}
+
+@media (max-width: 700px) {
+  .contact-section {
+    padding: 35px 18px;
+  }
+
+  .contact-container {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-info,
+  .contact-form {
+    padding: 22px;
+  }
+}

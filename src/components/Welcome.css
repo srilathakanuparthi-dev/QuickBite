@@ -1,0 +1,45 @@
+
+.welcome-screen {
+  min-height: 100vh;
+  background:#E0B0FF;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.welcome-title {
+  font-size: clamp(58px, 20vw, 100px);
+  color: #ff9234;
+  animation: welcomePop 1.2s ease-in-out;
+}
+
+.welcome-tagline {
+  font-size: clamp(18px, 4vw, 30px);
+  margin-top: 50px;
+  letter-spacing: 2px;
+  animation: taglineFade 1.5s ease-in-out;
+}
+
+@keyframes welcomePop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes taglineFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
