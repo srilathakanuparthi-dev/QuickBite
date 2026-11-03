@@ -1,6 +1,5 @@
 
-
-function Burger() {
+function Burger({ foods = [], onAddToCart }) {
   const burgerItems = [
     { name: 'Veg Burger', price: 99, rating: '4.2', image: 'https://img.magnific.com/free-psd/delicious-vegetarian-cheeseburger-stacked-with-fresh-lettuce-tomato-red-onion-sesame-seed-bun-isolated-black-background_84443-63487.jpg?semt=ais_hybrid&w=740&q=80' },
     { name: 'Chicken Burger', price: 149, rating: '4.5', image: 'https://img.magnific.com/free-psd/crispy-fried-chicken-sandwich_84443-79178.jpg?semt=ais_hybrid&w=740&q=80' },
@@ -10,17 +9,39 @@ function Burger() {
     { name: 'Crispy Chicken Burger', price: 179, rating: '4.6', image: 'https://t3.ftcdn.net/jpg/09/59/77/12/360_F_959771217_5Y25CowqBak3I65StQcmPYs0uqlxr6Fb.jpg' },
   ];
 
+  const updatedBurgerItems = burgerItems
+    .map((item) => {
+      const backendFood = foods.find(
+        (food) =>
+          food.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+      );
+
+      if (!backendFood) return null;
+
+      return {
+        ...item,
+        foodId: backendFood.foodId,
+        price: backendFood.price,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="food-grid">
-      {burgerItems.map((food) => (
-        <div className="food-card" key={food.name}>
+      {updatedBurgerItems.map((food) => (
+        <div className="food-card" key={food.foodId}>
           <img src={food.image} alt={food.name} />
           <div className="food-info">
             <h3>{food.name}</h3>
             <p>⭐ {food.rating} · 20–30 mins</p>
             <div className="food-bottom">
               <h4>₹{food.price}</h4>
-              <button type="button">ADD +</button>
+              <button
+  type="button"
+  onClick={() => onAddToCart(food.foodId)}
+>
+  ADD +
+</button>
             </div>
           </div>
         </div>

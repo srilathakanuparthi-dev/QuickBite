@@ -1,4 +1,5 @@
-function Biryani() {
+
+function Biryani({ foods = [], onAddToCart }) {
   const biryaniItems = [
     {
       name: 'Chicken Biryani',
@@ -38,25 +39,53 @@ function Biryani() {
     },
   ];
 
+  // Match original food items with backend records
+  const availableItems = biryaniItems
+    .map((item) => {
+      const backendFood = foods.find(
+        (food) =>
+          food.name?.trim().toLowerCase() ===
+          item.name.trim().toLowerCase()
+      );
+
+      if (!backendFood) return null;
+
+      return {
+        ...item,
+        foodId: backendFood.foodId,
+        price: backendFood.price,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="food-grid">
-      {biryaniItems.map((food) => (
-        <div className="food-card" key={food.name}>
-          <img src={food.image} alt={food.name} />
+      {availableItems.length > 0 ? (
+        availableItems.map((food) => (
+          <div className="food-card" key={food.foodId}>
+            <img src={food.image} alt={food.name} />
 
-          <div className="food-info">
-            <h3>{food.name}</h3>
+            <div className="food-info">
+              <h3>{food.name}</h3>
 
-            <p>⭐ {food.rating} · 25–30 mins</p>
+              <p>⭐ {food.rating} · 25–30 mins</p>
 
-            <div className="food-bottom">
-              <h4>₹{food.price}</h4>
+              <div className="food-bottom">
+                <h4>₹{food.price}</h4>
 
-              <button type="button">ADD +</button>
+                <button
+  type="button"
+  onClick={() => onAddToCart(food.foodId)}
+>
+  ADD +
+</button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))
+      ) : (
+        <p className="no-food">No Biryani items found.</p>
+      )}
     </div>
   );
 }

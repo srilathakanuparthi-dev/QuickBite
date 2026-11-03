@@ -1,6 +1,5 @@
 
-
-function Desserts() {
+function Desserts({ foods = [], onAddToCart }) {
   const dessertItems = [
     { name: 'Chocolate Brownie', price: 99, rating: '4.6', image: 'https://www.chelsea.co.nz/hubfs/Best%20Chocolate%20Brownie%20Recipe%20NZ%20Chelsea%20Sugar.jpg' },
     { name: 'Chocolate Cake', price: 129, rating: '4.7', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5fhTpgx5xNUx0SYisF_HlGEJIHN-LerBt97eFB4pfzihNAQcI7gMSLenG&s=10' },
@@ -11,17 +10,39 @@ function Desserts() {
     { name: 'Caramel Pudding', price: 89, rating: '4.3', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZHiV1y0CPHg7-krhSOUCNR-sSo6px74FJyAZcHNwFbrnFKDy7gzWk_i0&s=10' },
   ];
 
+  const updatedDessertItems = dessertItems
+    .map((item) => {
+      const backendFood = foods.find(
+        (food) =>
+          food.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+      );
+
+      if (!backendFood) return null;
+
+      return {
+        ...item,
+        foodId: backendFood.foodId,
+        price: backendFood.price,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="food-grid">
-      {dessertItems.map((food) => (
-        <div className="food-card" key={food.name}>
+      {updatedDessertItems.map((food) => (
+        <div className="food-card" key={food.foodId}>
           <img src={food.image} alt={food.name} />
           <div className="food-info">
             <h3>{food.name}</h3>
             <p>⭐ {food.rating} · 15–20 mins</p>
             <div className="food-bottom">
               <h4>₹{food.price}</h4>
-              <button type="button">ADD +</button>
+              <button
+  type="button"
+  onClick={() => onAddToCart(food.foodId)}
+>
+  ADD +
+</button>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 
-function Juices() {
+function Juices({ foods = [], onAddToCart }) {
   const juiceItems = [
     {
       name: 'Orange Juice',
@@ -39,10 +39,27 @@ function Juices() {
     },
   ];
 
+  const updatedJuiceItems = juiceItems
+    .map((item) => {
+      const backendFood = foods.find(
+        (food) =>
+          food.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+      );
+
+      if (!backendFood) return null;
+
+      return {
+        ...item,
+        foodId: backendFood.foodId,
+        price: backendFood.price,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="food-grid">
-      {juiceItems.map((food) => (
-        <div className="food-card" key={food.name}>
+      {updatedJuiceItems.map((food) => (
+        <div className="food-card" key={food.foodId}>
           <img src={food.image} alt={food.name} />
 
           <div className="food-info">
@@ -51,7 +68,12 @@ function Juices() {
 
             <div className="food-bottom">
               <h4>₹{food.price}</h4>
-              <button type="button">ADD +</button>
+              <button
+  type="button"
+  onClick={() => onAddToCart(food.foodId)}
+>
+  ADD +
+</button>
             </div>
           </div>
         </div>
@@ -61,8 +83,3 @@ function Juices() {
 }
 
 export default Juices;
-
-
-
-
-  

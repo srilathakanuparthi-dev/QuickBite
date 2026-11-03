@@ -1,0 +1,269 @@
+
+.checkout-page {
+  width: 94%;
+  max-width: 1100px;
+  margin: 25px auto 45px;
+  padding: 10px;
+  box-sizing: border-box;
+  color: #171717;
+}
+
+.checkout-page > h1 {
+  text-align: center;
+  font-size: 30px;
+  color: #ff6900;
+  margin: 10px 0 25px;
+}
+
+/* SECTION CARDS */
+.checkout-card {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #d1c4ef;
+  border-radius: 18px;
+  padding: 22px 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.07);
+}
+
+.checkout-card h2 {
+  text-align: left;
+  font-size: 25px;
+  color: #171717;
+  margin: 0 0 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* FOOD ROWS */
+.checkout-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.checkout-item:last-child {
+  border-bottom: none;
+}
+
+.checkout-item img {
+  width: 85px;
+  height: 85px;
+  min-width: 85px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.checkout-item .checkout-product-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.checkout-product-info h3 {
+  font-size: 20px;
+  text-align: left;
+  margin: 0 0 8px;
+  color: #171717;
+}
+
+.checkout-product-info p {
+  font-size: 18px;
+  text-align: left;
+  margin: 0;
+  color: #171717;
+}
+
+.checkout-item strong {
+  min-width: 75px;
+  text-align: right;
+  font-size: 19px;
+  color: #171717;
+}
+
+/* COD */
+.cod-option {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border: 2px solid #ff7900;
+  background: #fff3e8;
+  border-radius: 12px;
+}
+
+.cod-option span {
+  font-size: 28px;
+}
+
+.cod-option h3 {
+  font-size: 19px;
+  margin: 0 0 5px;
+  color: #171717;
+}
+
+.cod-option p {
+  font-size: 16px;
+  margin: 0;
+  color: #333;
+}
+
+/* SUMMARY */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 19px;
+  margin: 12px 0;
+  color: #171717;
+}
+
+.grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffe1c4;
+  color: #e85e00;
+  padding: 12px 18px;
+  border-radius: 11px;
+  margin-top: 18px;
+  font-size: 25px;
+}
+
+/* DELIVERY */
+.checkout-card label {
+  display: block;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  color: #171717;
+  margin: 15px 0 7px;
+}
+
+.checkout-card input,
+.checkout-card textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid #c9c9d2;
+  border-radius: 9px;
+  background: #fff;
+  color: #222;
+  font-size: 16px;
+}
+
+.checkout-card textarea {
+  min-height: 75px;
+  resize: vertical;
+}
+
+.checkout-card input:focus,
+.checkout-card textarea:focus {
+  outline: none;
+  border-color: #ff6900;
+}
+
+/* PLACE ORDER */
+.checkout-page .place-order-btn {
+  display: block;
+  width: 100%;
+  padding: 20px;
+  margin: 25px 0;
+  border: none;
+  border-radius: 15px;
+  background: #ff6900;
+  color: white;
+  font-size: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.checkout-page .place-order-btn:hover {
+  background: #e85e00;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .checkout-page {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .checkout-card {
+    padding: 15px;
+  }
+
+  .checkout-item {
+    gap: 10px;
+  }
+
+  .checkout-item img {
+    width: 65px;
+    height: 65px;
+    min-width: 65px;
+  }
+
+  .checkout-product-info h3 {
+    font-size: 15px;
+  }
+
+  .checkout-product-info p {
+    font-size: 14px;
+  }
+
+  .checkout-item strong {
+    min-width: 42px;
+    font-size: 14px;
+  }
+
+  .grand-total {
+    font-size: 18px;
+  }
+
+  .checkout-page .place-order-btn {
+    font-size: 20px;
+  }
+}
+.payment-option {
+  display: flex !important;
+  align-items: center;
+  gap: 15px;
+  padding: 16px;
+  margin: 12px 0 !important;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.payment-option:has(input:checked) {
+  border-color: #ff6900;
+  background: #fff3e8;
+}
+
+.payment-option input {
+  width: 20px !important;
+  height: 20px;
+  accent-color: #ff6900;
+}
+
+.payment-option span {
+  font-size: 25px;
+}
+
+.payment-option h3 {
+  margin: 0 0 5px;
+  font-size: 17px;
+  color: #222;
+}
+
+.payment-option p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}

@@ -1,6 +1,5 @@
 
-
-function Drinks() {
+function Drinks({ foods = [], onAddToCart }) {
   const drinkItems = [
     { name: 'Cold Coffee', price: 99, rating: '4.5', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLXUyhKqYnthSPc3lOblU6Y-wck3u3BccePUBB3-21RKPiihoZ7BsUAXI&s=10' },
     { name: 'Chocolate Milkshake', price: 119, rating: '4.6', image: 'https://cookilicious.com/wp-content/uploads/2025/01/Brownie-Milkshake-Recipe-20-500x500.jpg' },
@@ -10,17 +9,39 @@ function Drinks() {
     { name: 'Iced Tea', price: 79, rating: '4.3', image: 'https://bakingamoment.com/wp-content/uploads/2024/05/IMG_3367-iced-tea.jpg' },
   ];
 
+  const updatedDrinkItems = drinkItems
+    .map((item) => {
+      const backendFood = foods.find(
+        (food) =>
+          food.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+      );
+
+      if (!backendFood) return null;
+
+      return {
+        ...item,
+        foodId: backendFood.foodId,
+        price: backendFood.price,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="food-grid">
-      {drinkItems.map((food) => (
-        <div className="food-card" key={food.name}>
+      {updatedDrinkItems.map((food) => (
+        <div className="food-card" key={food.foodId}>
           <img src={food.image} alt={food.name} />
           <div className="food-info">
             <h3>{food.name}</h3>
             <p>⭐ {food.rating} · 10–15 mins</p>
             <div className="food-bottom">
               <h4>₹{food.price}</h4>
-              <button type="button">ADD +</button>
+              <button
+  type="button"
+  onClick={() => onAddToCart(food.foodId)}
+>
+  ADD +
+</button>
             </div>
           </div>
         </div>

@@ -1,10 +1,10 @@
 
-/* ===== General Profile Page ===== */
+/* ===== Main Profile Page ===== */
 .profile-page {
   min-height: 75vh;
   padding: 40px 6%;
   background: #fffaf5;
-  color: #29231f;
+  color: #171717;
   font-family: Arial, sans-serif;
   box-sizing: border-box;
 }
@@ -13,80 +13,76 @@
   box-sizing: border-box;
 }
 
-/* ===== Page Header ===== */
+/* ===== Header ===== */
 .profile-header {
-  margin-bottom: 30px;
+  margin-bottom: 38px;
 }
 
-.profile-header > p {
-  color: #f07832;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
+.profile-header p {
+  color: #f07832 !important;
 }
 
 .profile-header h1 {
-  margin: 8px 0;
-  font-size: 34px;
-  color:balck;
+  color: #171717 !important;
+  font-size: 34px !important;
+  font-weight: 800 !important;
 }
 
 .profile-header span {
-  color: #77716b;
-  font-size: 14px;
+  color: #555;
+  font-size: 16px;
 }
 
 /* ===== Main Layout ===== */
 .profile-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 25px;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 28px;
   align-items: start;
   width: 100%;
 }
 
-/* ===== Sidebar and Details Card ===== */
+/* ===== Sidebar and Main Card ===== */
 .profile-sidebar,
 .profile-details-card {
   min-width: 0;
-  padding: 28px;
-  background: white;
-  border: 1px solid #f0e6dc;
-  border-radius: 16px;
-  box-shadow: 0 6px 22px rgba(70, 45, 25, 0.05);
+  padding: 30px;
+  background: #fff;
+  border: 1px solid #f2e4d9;
+  border-radius: 22px;
+  box-shadow: 0 8px 28px rgba(80, 45, 20, 0.07);
 }
 
-/* ===== Profile Avatar ===== */
+/* ===== Sidebar ===== */
 .profile-sidebar {
   text-align: center;
 }
 
 .profile-avatar-wrapper {
   position: relative;
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 15px;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 18px;
 }
 
 .profile-avatar {
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
   background: #fff0e5;
-  font-size: 45px;
+  font-size: 48px;
 }
 
 .profile-avatar-edit {
   position: absolute;
-  top: 65px;
-  left: 65px;
+  top: 72px;
+  left: 75px;
   z-index: 10;
-  width: 30px;
-  height: 30px;
-  padding: 0;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,25 +91,24 @@
   background: #f07832;
   color: white;
   cursor: pointer;
-  font-size: 13px;
 }
-
 
 .profile-avatar-edit:hover {
   background: #df6020;
   transform: scale(1.08);
 }
 
-/* ===== Sidebar User Information ===== */
 .profile-sidebar h2 {
-  margin-bottom: 8px;
-  font-size: 20px;
+  margin: 12px 0 8px;
+  font-size: 23px;
+  font-weight: 750;
+  color: #171717;
   overflow-wrap: anywhere;
 }
 
 .profile-sidebar > p {
-  color: #77716b;
-  font-size: 14px;
+  color: #555;
+  font-size: 15px;
   overflow-wrap: anywhere;
 }
 
@@ -121,19 +116,20 @@
 .profile-menu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 28px;
+  gap: 10px;
+  margin-top: 35px;
 }
 
 .profile-menu button {
   width: 100%;
-  padding: 13px;
+  padding: 16px;
   border: none;
-  border-radius: 8px;
-  background: white;
-  color: #514b46;
+  border-radius: 12px;
+  background: transparent;
+  color: #252525;
   text-align: left;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
@@ -141,56 +137,64 @@
 .profile-menu button:hover,
 .profile-menu .profile-menu-active {
   background: #fff0e5;
-  color: #e66b24;
+  color: #e85b00;
 }
 
-/* ===== Personal Information Heading ===== */
+.profile-menu button:last-child {
+  color: #dc2626;
+}
+
+/* ===== Main Card Heading ===== */
 .profile-card-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #f0e6dc;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #eee5de;
 }
 
 .profile-card-heading h2 {
-  margin-bottom: 8px;
-  font-size: 21px;
+  margin: 0 0 8px;
+  font-size: 25px;
+  font-weight: 750;
+  color: #171717;
 }
 
 .profile-card-heading p {
-  color: #77716b;
-  font-size: 14px;
+  color: #555;
+  font-size: 15px;
+  margin: 0;
 }
 
 /* ===== Profile Fields ===== */
 .profile-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-  margin-top: 25px;
+  gap: 25px 28px;
+  margin-top: 30px;
 }
 
 .profile-fields label {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
   min-width: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  color: #171717;
 }
 
 .profile-fields input {
   width: 100%;
   min-width: 0;
-  padding: 13px;
-  border: 1px solid #e8dfd6;
-  border-radius: 8px;
-  background: #f8f6f3;
-  color: #29231f;
+  padding: 16px;
+  border: 1px solid #dedede;
+  border-radius: 12px;
+  background: #fafafa;
+  color: #171717;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px;
   outline: none;
 }
 
@@ -199,61 +203,113 @@
 }
 
 .profile-fields input:not([readonly]) {
-  background: #fffdfb;
+  background: #fff;
   border-color: #f07832;
 }
 
 .profile-fields input:focus {
   border-color: #f07832;
-  box-shadow: 0 0 0 2px rgba(240, 120, 50, 0.12);
+  box-shadow: 0 0 0 3px rgba(240, 120, 50, 0.12);
 }
 
-/* ===== Save and Cancel Buttons ===== */
-.profile-button-area {
-  margin-top: 24px;
-}
-
+/* ===== Buttons ===== */
 .profile-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   flex-wrap: wrap;
+  margin-top: 25px;
+  margin-bottom: 30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .profile-edit-button,
 .profile-save-button {
-  padding: 12px 24px;
+  padding: 14px 25px;
   border: none;
-  border-radius: 8px;
+  border-radius: 11px;
   color: white;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .profile-edit-button {
-  background: #ff6b35;
-}
-
-.profile-edit-button:hover {
-  background: #e85b27;
+  background: linear-gradient(135deg, #ff7a18, #f04b00);
 }
 
 .profile-save-button {
   background: #198754;
 }
 
+.profile-edit-button:hover,
 .profile-save-button:hover {
-  background: #146c43;
+  transform: translateY(-2px);
+  filter: brightness(0.95);
 }
 
-.profile-edit-button:active,
-.profile-save-button:active {
-  transform: scale(0.98);
+/* ===== Horizontal Line ===== */
+.profile-details-card hr {
+  margin: 25px 0;
+  border: none;
+  border-top: 1px solid #eee5de;
 }
 
-/* ===== Tablet and Mobile ===== */
+/* ===== Change Password Section ===== */
+.change-password-section {
+  margin-top: 25px;
+  padding-top: 10px;
+}
+
+.change-password-section h2 {
+  margin: 0 0 30px;
+  color: #171717;
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.change-password-section .profile-fields {
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+.change-password-section .profile-save-button {
+  display: inline-block;
+  margin-top: 20px;
+  margin-bottom: 25px;
+}
+
+/* ===== Common Form Elements ===== */
+.profile-details-card input,
+.profile-details-card textarea,
+.profile-details-card select {
+  max-width: 100%;
+}
+
+.profile-details-card input,
+.profile-details-card textarea {
+  color: #171717;
+}
+
+.profile-details-card button {
+  font-family: inherit;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .profile-layout {
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .profile-sidebar,
+  .profile-details-card {
+    padding: 22px;
+  }
+}
+
 @media (max-width: 750px) {
   .profile-page {
     padding: 28px 5%;
@@ -279,7 +335,6 @@
   }
 }
 
-/* ===== Small Mobile Screens ===== */
 @media (max-width: 400px) {
   .profile-header h1 {
     font-size: 28px;

@@ -1,5 +1,5 @@
 
-function Pizza() {
+function Pizza({ foods = [], onAddToCart }) {
   const pizzaItems = [
     {
       name: 'Margherita Pizza',
@@ -39,10 +39,27 @@ function Pizza() {
     },
   ];
 
+  const updatedPizzaItems = pizzaItems
+    .map((item) => {
+      const backendFood = foods.find(
+        (food) =>
+          food.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+      );
+
+      if (!backendFood) return null;
+
+      return {
+        ...item,
+        foodId: backendFood.foodId,
+        price: backendFood.price,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="food-grid">
-      {pizzaItems.map((food) => (
-        <div className="food-card" key={food.name}>
+      {updatedPizzaItems.map((food) => (
+        <div className="food-card" key={food.foodId}>
           <img src={food.image} alt={food.name} />
 
           <div className="food-info">
@@ -53,7 +70,12 @@ function Pizza() {
             <div className="food-bottom">
               <h4>₹{food.price}</h4>
 
-              <button type="button">ADD +</button>
+              <button
+  type="button"
+  onClick={() => onAddToCart(food.foodId)}
+>
+  ADD +
+</button>
             </div>
           </div>
         </div>
