@@ -15,7 +15,7 @@ import Breakfast from '../foods/Breakfast';
 import Juices from '../foods/Juices';
 import Desserts from '../foods/Desserts';
 
-function FoodHome({ setPage, firstName, lastName, email, userId }) {
+function FoodHome({ setPage, firstName, lastName, email, userId, token, apiFetch, onLogout }) {
   const [activePage, setActivePage] = useState('Home');
   const [search, setSearch] = useState('');
   const [cartItems, setCartItems] = useState([]);
@@ -25,39 +25,73 @@ const cartCount = cartItems.reduce(
   0
 );
 const [cartLoading, setCartLoading] = useState(false);
+const [orders, setOrders] = useState([]);
+const [ordersLoading, setOrdersLoading] = useState(false);
+const [ordersError, setOrdersError] = useState('');
 const [toastMessage, setToastMessage] = useState('');
 const fetchCart = useCallback(async () => {
-    if (!userId) {
-        setCartItems([]);
-        return;
+  if (!userId) {
+    setCartItems([]);
+    return;
+  }
+
+  try {
+    setCartLoading(true);
+
+    const response = await apiFetch(
+      `http://localhost:8080/api/cart/${userId}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch cart');
     }
 
-    try {
-        setCartLoading(true);
+    const data = await response.json();
+    setCartItems(data);
 
-        const response = await fetch(
-            `http://localhost:8080/api/cart/${userId}`
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch cart");
-        }
-
-        const data = await response.json();
-        setCartItems(data);
-
-    } catch (error) {
-        console.error("Cart fetch error:", error);
-        setCartItems([]);
-
-    } finally {
-        setCartLoading(false);
-    }
-}, [userId]);
+  } catch (error) {
+    console.error('Cart fetch error:', error);
+  } finally {
+    setCartLoading(false);
+  }
+}, [userId, apiFetch]);
 
 useEffect(() => {
-    fetchCart();
+  fetchCart();
 }, [fetchCart]);
+useEffect(() => {
+  if (activePage !== 'Order History') return;
+
+  const fetchOrders = async () => {
+    try {
+      setOrdersLoading(true);
+      setOrdersError('');
+
+      const response = await apiFetch(
+        `http://localhost:8080/api/orders/user/${userId}`,
+        {
+          headers: {
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Unable to load orders');
+      }
+
+      const data = await response.json();
+      setOrders(Array.isArray(data) ? data : []);
+
+    } catch (error) {
+      console.error(error);
+      setOrdersError(error.message);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  fetchOrders();
+}, [activePage, userId, token, apiFetch]);
 const handleAddToCart = async (foodId) => {
     if (!userId) {
         alert("Please login to add items to cart");
@@ -65,22 +99,27 @@ const handleAddToCart = async (foodId) => {
     }
 
     try {
-        const response = await fetch(
-            `http://localhost:8080/api/cart/${userId}/add/${foodId}`,
-            {
-                method: "POST"
-            }
-        );
+        const response = await apiFetch(
+    `http://localhost:8080/api/cart/${userId}/add/${foodId}`,
+    {
+        method: "POST",
+        headers: {
+        }
+    }
+);
 
         if (!response.ok) {
             throw new Error("Failed to add item to cart");
         }
 
         // Refresh cart after adding item
-        const cartResponse = await fetch(
-            `http://localhost:8080/api/cart/${userId}`
-        );
-
+       const cartResponse = await apiFetch(
+    `http://localhost:8080/api/cart/${userId}`,
+    {
+        headers: {
+        }
+    }
+);
         const updatedCart = await cartResponse.json();
         setCartItems(updatedCart);
 
@@ -101,14 +140,18 @@ const updateCartQuantity = async (foodId, quantity) => {
       return;
     }
 
-    await fetch(
+    await apiFetch(
       `http://localhost:8080/api/cart/${userId}/update/${foodId}/${quantity}`,
       { method: "PUT" }
     );
 
-    const response = await fetch(
-      `http://localhost:8080/api/cart/${userId}`
-    );
+    const response = await apiFetch(
+    `http://localhost:8080/api/cart/${userId}`,
+    {
+        headers: {
+        }
+    }
+);
 
     const data = await response.json();
     setCartItems(data);
@@ -119,15 +162,18 @@ const updateCartQuantity = async (foodId, quantity) => {
 
 const removeFromCart = async (foodId) => {
   try {
-    await fetch(
+    await apiFetch(
       `http://localhost:8080/api/cart/${userId}/remove/${foodId}`,
       { method: "DELETE" }
     );
 
-    const response = await fetch(
-      `http://localhost:8080/api/cart/${userId}`
-    );
-
+    const response = await apiFetch(
+    `http://localhost:8080/api/cart/${userId}`,
+    {
+        headers: {
+        }
+    }
+);
     const data = await response.json();
     setCartItems(data);
   } catch (error) {
@@ -144,6 +190,7 @@ const removeFromCart = async (foodId) => {
     { name: 'Categories', icon: '▦' },
     { name: 'Popular', icon: '🔥' },
     { name: 'Cart', icon: '🛒' },
+  
   ];
 
   // Default food items - fallback data
@@ -357,56 +404,57 @@ const popularFoods = [...filteredFoods]
   };
 
   // Render food cards
-  function renderFoods(items) {
-    return (
-      <div className="food-grid">
-        {items.length > 0 ? (
-          items.map((food) => (
-            <div
-              className="food-card"
-              key={food.foodId || food.name}
-            >
-              <img
-                src={getFoodImage(food)}
-                alt={food.name}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src =
-                    'https://placehold.co/300x200?text=Food';
-                }}
-              />
+  // Render food cards
+function renderFoods(items) {
+  return (
+    <div className="food-grid">
+      {items.length > 0 ? (
+        items.map((food) => (
+          <div
+            className="food-card"
+            key={food.foodId || food.name}
+          >
+            <img
+              src={getFoodImage(food)}
+              alt={food.name}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src =
+                  'https://placehold.co/300x200?text=Food';
+              }}
+            />
 
-              <div className="food-info">
-                <h3>{food.name}</h3>
+            <div className="food-info">
+              <h3>{food.name}</h3>
 
+              <div className="food-meta">
                 {food.rating && (
-                  <p className="food-rating">
-                    ⭐ {food.rating}
-                  </p>
+                  <span>⭐ {food.rating}</span>
                 )}
 
-                <div className="food-bottom">
-                  <strong>₹{food.price}</strong>
+                {food.time && (
+                  <span>· {food.time}</span>
+                )}
+              </div>
 
-                  <button
-    onClick={() => {
-        console.log("Add button clicked:", food);
-        console.log("Food ID:", food.foodId);
-        handleAddToCart(food.foodId);
-    }}
->
-    Add +
-</button>
-                </div>
+              <div className="food-bottom">
+                <strong>₹{food.price}</strong>
+
+                <button
+                  onClick={() => handleAddToCart(food.foodId)}
+                >
+                  Add +
+                </button>
               </div>
             </div>
-          ))
-        ) : (
-          <p className="no-food">No food items found.</p>
-        )}
-      </div>
-    );
-  }
+          </div>
+        ))
+      ) : (
+        <p className="no-food">No foods found.</p>
+      )}
+    </div>
+  );
+}
 
   return (
     <div className="food-home">
@@ -726,13 +774,63 @@ const popularFoods = [...filteredFoods]
     )}
   </section>
 )}
+{activePage === 'Order History' && (
+  <section className="order-history-page">
+
+    <h1 className="section-title">
+      📦 My Orders
+    </h1>
+
+    {ordersLoading ? (
+      <p>Loading orders...</p>
+    ) : ordersError ? (
+      <p className="no-food">{ordersError}</p>
+    ) : orders.length === 0 ? (
+      <div className="empty-cart">
+        <h2>No Orders Yet</h2>
+        <p>Your orders will appear here.</p>
+
+        <button onClick={() => setActivePage('Home')}>
+          Explore Foods
+        </button>
+      </div>
+    ) : (
+      <div className="orders-list">
+
+        {orders.map((order, index) => (
+          <div className="checkout-card" key={order.orderId || index}>
+
+            <h2>Order #{order.orderId}</h2>
+
+            <p>
+              <strong>Total:</strong> ₹{order.totalAmount}
+            </p>
+
+            <p>
+              <strong>Payment:</strong> {order.paymentMethod}
+            </p>
+
+            <p>
+              <strong>Status:</strong> {order.orderStatus}
+            </p>
+
+          </div>
+        ))}
+
+      </div>
+    )}
+
+  </section>
+)}
         {activePage === 'Checkout' && (
-    <Checkout
-        cartItems={cartItems}
-        setCartItems={setCartItems}
-        userId={userId}
-        setActivePage={setActivePage}
-    />
+   <Checkout
+    cartItems={cartItems}
+    setCartItems={setCartItems}
+    userId={userId}
+    token={token}
+    apiFetch={apiFetch}
+    setActivePage={setActivePage}
+/>
 )}
         {/* ABOUT PAGE */}
         {activePage === 'About' && <About />}
@@ -742,13 +840,16 @@ const popularFoods = [...filteredFoods]
 
         {/* PROFILE PAGE */}
         {activePage === 'Profile' && (
-          <Profile
+  <Profile
     firstName={firstName}
     lastName={lastName}
     email={email}
     userId={userId}
-/>
-        )}
+  token={token}
+    apiFetch={apiFetch}
+    onLogout={onLogout}
+  />
+)}
 
       </main>
 

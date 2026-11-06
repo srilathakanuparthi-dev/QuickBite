@@ -1,15 +1,19 @@
 
-import { useState, useEffect } from 'react';
-import './Profile.css';
+import { useState, useEffect, useCallback } from 'react';
+import './profile.css';
 
 function Profile({
     firstName,
     lastName,
     email,
     userId,
+    token,
+    apiFetch,
     onLogout
 }) {
     const [activeSection, setActiveSection] = useState('My Profile');
+    const [language, setLanguage] = useState('English');
+    const [theme, setTheme] = useState('Light');
 
     // Profile details
     const [editMode, setEditMode] = useState(false);
@@ -40,6 +44,7 @@ function Profile({
     const [newAddress, setNewAddress] = useState('');
     const [editingAddressId, setEditingAddressId] = useState(null);
 
+    // Update profile details when props change
     useEffect(() => {
         setFirst(firstName || '');
         setLast(lastName || '');
@@ -51,45 +56,82 @@ function Profile({
     }, [firstName, lastName, email]);
 
     // Fetch orders
-    const fetchOrders = async () => {
-        if (!userId) return;
+    const fetchOrders = useCallback(async (showLoading = true) => {
+        if (!userId || !token) return;
 
         try {
-            setOrdersLoading(true);
+            if (showLoading) {
+                setOrdersLoading(true);
+            }
+
             setOrdersError('');
 
-            const response = await fetch(
-                `http://localhost:8080/api/orders/user/${userId}`
+            const response = await apiFetch(
+                `http://localhost:8080/api/orders/user/${userId}`,
+                {
+                    headers: {
+                    }
+                }
             );
 
             if (!response.ok) {
-                throw new Error('Unable to load orders. Please check backend API.');
+                const errorText = await response.text();
+                throw new Error(
+                    `Orders API failed: ${response.status} - ${errorText}`
+                );
             }
 
             const data = await response.json();
-            setOrders(Array.isArray(data) ? data : []);
+            const newOrders = Array.isArray(data) ? data : [];
+
+            setOrders(previousOrders =>
+                JSON.stringify(previousOrders) === JSON.stringify(newOrders)
+                    ? previousOrders
+                    : newOrders
+            );
 
         } catch (error) {
             console.error('Orders error:', error);
             setOrdersError(error.message);
+
         } finally {
-            setOrdersLoading(false);
+            if (showLoading) {
+                setOrdersLoading(false);
+            }
         }
-    };
+    }, [userId, token, apiFetch]);
+
+    // Automatically refresh orders every 5 seconds
+    useEffect(() => {
+        if (activeSection !== 'My Orders') return;
+
+        const interval = setInterval(() => {
+            fetchOrders(false);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [activeSection, fetchOrders]);
 
     // Fetch saved addresses
     const fetchAddresses = async () => {
-        if (!userId) return;
+        if (!userId || !token) return;
 
         try {
             setAddressLoading(true);
 
-            const response = await fetch(
-                `http://localhost:8080/api/addresses/${userId}`
+            const response = await apiFetch(
+                `http://localhost:8080/api/addresses/${userId}`,
+                {
+                    headers: {
+                    }
+                }
             );
 
             if (!response.ok) {
-                throw new Error('Unable to load addresses');
+                const errorText = await response.text();
+                throw new Error(
+                    errorText || 'Unable to load addresses.'
+                );
             }
 
             const data = await response.json();
@@ -98,6 +140,8 @@ function Profile({
         } catch (error) {
             console.error('Address error:', error);
             setAddresses([]);
+            alert(error.message);
+
         } finally {
             setAddressLoading(false);
         }
@@ -109,7 +153,7 @@ function Profile({
         setMessage('');
 
         if (section === 'My Orders') {
-            fetchOrders();
+            fetchOrders(true);
         }
 
         if (section === 'Saved Addresses') {
@@ -128,7 +172,11 @@ function Profile({
 
     // Save profile
     const handleSaveProfile = async () => {
-        if (!editFirst.trim() || !editLast.trim() || !editEmail.trim()) {
+        if (
+            !editFirst.trim() ||
+            !editLast.trim() ||
+            !editEmail.trim()
+        ) {
             setMessage('Please fill all profile details.');
             return;
         }
@@ -137,12 +185,12 @@ function Profile({
             setSaving(true);
             setMessage('');
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `http://localhost:8080/api/users/${userId}`,
                 {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         firstName: editFirst.trim(),
@@ -153,23 +201,29 @@ function Profile({
             );
 
             if (!response.ok) {
-                throw new Error('Profile update failed.');
+                const errorText = await response.text();
+                throw new Error(
+                    errorText || 'Profile update failed.'
+                );
             }
 
             setFirst(editFirst.trim());
             setLast(editLast.trim());
             setUserEmail(editEmail.trim());
+
             setEditMode(false);
             setMessage('Profile updated successfully!');
 
         } catch (error) {
             console.error('Profile update error:', error);
             setMessage(error.message);
+
         } finally {
             setSaving(false);
         }
     };
 
+    // Cancel profile editing
     const handleCancel = () => {
         setEditFirst(first);
         setEditLast(last);
@@ -196,12 +250,12 @@ function Profile({
         }
 
         try {
-            const response = await fetch(
+            const response = await apiFetch(
                 `http://localhost:8080/api/users/${userId}/change-password`,
                 {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         currentPassword,
@@ -211,7 +265,10 @@ function Profile({
             );
 
             if (!response.ok) {
-                throw new Error('Password change failed.');
+                const errorText = await response.text();
+                throw new Error(
+                    errorText || 'Password change failed.'
+                );
             }
 
             setCurrentPassword('');
@@ -220,14 +277,20 @@ function Profile({
             setMessage('Password changed successfully!');
 
         } catch (error) {
+            console.error('Password error:', error);
             setMessage(error.message);
         }
     };
 
-    // Save address
+    // Save or update address
     const handleSaveAddress = async () => {
         if (!newAddress.trim()) {
             alert('Please enter an address.');
+            return;
+        }
+
+        if (!userId || !token) {
+            alert('Please login again.');
             return;
         }
 
@@ -238,10 +301,10 @@ function Profile({
                 ? `http://localhost:8080/api/addresses/${userId}/${editingAddressId}`
                 : `http://localhost:8080/api/addresses/${userId}`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: isEditing ? 'PUT' : 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     address: newAddress.trim()
@@ -249,14 +312,25 @@ function Profile({
             });
 
             if (!response.ok) {
-                throw new Error('Unable to save address.');
+                const errorText = await response.text();
+                throw new Error(
+                    errorText || 'Unable to save address.'
+                );
             }
 
             setNewAddress('');
             setEditingAddressId(null);
-            fetchAddresses();
+
+            await fetchAddresses();
+
+            alert(
+                isEditing
+                    ? 'Address updated successfully!'
+                    : 'Address saved successfully!'
+            );
 
         } catch (error) {
+            console.error('Save address error:', error);
             alert(error.message);
         }
     };
@@ -266,18 +340,26 @@ function Profile({
         if (!window.confirm('Delete this address?')) return;
 
         try {
-            const response = await fetch(
+            const response = await apiFetch(
                 `http://localhost:8080/api/addresses/${userId}/${addressId}`,
-                { method: 'DELETE' }
+                {
+                    method: 'DELETE',
+                    headers: {
+                    }
+                }
             );
 
             if (!response.ok) {
-                throw new Error('Unable to delete address.');
+                const errorText = await response.text();
+                throw new Error(
+                    errorText || 'Unable to delete address.'
+                );
             }
 
-            fetchAddresses();
+            await fetchAddresses();
 
         } catch (error) {
+            console.error('Delete address error:', error);
             alert(error.message);
         }
     };
@@ -306,28 +388,44 @@ function Profile({
                     <div className="profile-menu">
 
                         <button
-                            className={activeSection === 'My Profile' ? 'profile-menu-active' : ''}
+                            className={
+                                activeSection === 'My Profile'
+                                    ? 'profile-menu-active'
+                                    : ''
+                            }
                             onClick={() => handleSectionChange('My Profile')}
                         >
                             👤 My Profile
                         </button>
 
                         <button
-                            className={activeSection === 'My Orders' ? 'profile-menu-active' : ''}
+                            className={
+                                activeSection === 'My Orders'
+                                    ? 'profile-menu-active'
+                                    : ''
+                            }
                             onClick={() => handleSectionChange('My Orders')}
                         >
                             📦 My Orders
                         </button>
 
                         <button
-                            className={activeSection === 'Saved Addresses' ? 'profile-menu-active' : ''}
+                            className={
+                                activeSection === 'Saved Addresses'
+                                    ? 'profile-menu-active'
+                                    : ''
+                            }
                             onClick={() => handleSectionChange('Saved Addresses')}
                         >
                             📍 Saved Addresses
                         </button>
 
                         <button
-                            className={activeSection === 'Settings' ? 'profile-menu-active' : ''}
+                            className={
+                                activeSection === 'Settings'
+                                    ? 'profile-menu-active'
+                                    : ''
+                            }
                             onClick={() => handleSectionChange('Settings')}
                         >
                             ⚙️ Settings
@@ -358,7 +456,9 @@ function Profile({
                                     <input
                                         value={editMode ? editFirst : first}
                                         readOnly={!editMode}
-                                        onChange={(e) => setEditFirst(e.target.value)}
+                                        onChange={(e) =>
+                                            setEditFirst(e.target.value)
+                                        }
                                     />
                                 </label>
 
@@ -367,7 +467,9 @@ function Profile({
                                     <input
                                         value={editMode ? editLast : last}
                                         readOnly={!editMode}
-                                        onChange={(e) => setEditLast(e.target.value)}
+                                        onChange={(e) =>
+                                            setEditLast(e.target.value)
+                                        }
                                     />
                                 </label>
 
@@ -377,7 +479,9 @@ function Profile({
                                         type="email"
                                         value={editMode ? editEmail : userEmail}
                                         readOnly={!editMode}
-                                        onChange={(e) => setEditEmail(e.target.value)}
+                                        onChange={(e) =>
+                                            setEditEmail(e.target.value)
+                                        }
                                     />
                                 </label>
 
@@ -386,6 +490,7 @@ function Profile({
                             {message && <p>{message}</p>}
 
                             <div className="profile-actions">
+
                                 {!editMode ? (
                                     <button
                                         className="profile-save-button"
@@ -400,7 +505,9 @@ function Profile({
                                             onClick={handleSaveProfile}
                                             disabled={saving}
                                         >
-                                            {saving ? 'Saving...' : 'Save Changes'}
+                                            {saving
+                                                ? 'Saving...'
+                                                : 'Save Changes'}
                                         </button>
 
                                         <button
@@ -411,134 +518,389 @@ function Profile({
                                         </button>
                                     </>
                                 )}
+
                             </div>
 
                             <hr />
 
                             <div className="change-password-section">
 
-    <h2>Change Password</h2>
+                                <h2>Change Password</h2>
 
-    <div className="profile-fields">
-        <label>
-            Current Password
-            <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Current password"
-            />
-        </label>
+                                <div className="profile-fields">
 
-        <label>
-            New Password
-            <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New password"
-            />
-        </label>
+                                    <label>
+                                        Current Password
+                                        <input
+                                            type="password"
+                                            value={currentPassword}
+                                            onChange={(e) =>
+                                                setCurrentPassword(e.target.value)
+                                            }
+                                            placeholder="Current password"
+                                        />
+                                    </label>
 
-        <label>
-            Confirm New Password
-            <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm password"
-            />
-        </label>
-    </div>
+                                    <label>
+                                        New Password
+                                        <input
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) =>
+                                                setNewPassword(e.target.value)
+                                            }
+                                            placeholder="New password"
+                                        />
+                                    </label>
 
-    <button
-        className="profile-save-button"
-        onClick={handleChangePassword}
-    >
-        Change Password
-    </button>
+                                    <label>
+                                        Confirm New Password
+                                        <input
+                                            type="password"
+                                            value={confirmPassword}
+                                            onChange={(e) =>
+                                                setConfirmPassword(e.target.value)
+                                            }
+                                            placeholder="Confirm password"
+                                        />
+                                    </label>
 
-</div>
-</>
-)}
+                                </div>
+
+                                <button
+                                    className="profile-save-button"
+                                    onClick={handleChangePassword}
+                                >
+                                    Change Password
+                                </button>
+
+                            </div>
+                        </>
+                    )}
 
                     {/* MY ORDERS */}
                     {activeSection === 'My Orders' && (
                         <>
-                            <h2>My Orders</h2>
+                            <div className="orders-header">
+                                <h2 className="orders-heading">My Orders</h2>
 
-                            {ordersLoading ? (
+                                <button
+                                    className="refresh-orders-btn"
+                                    onClick={() => fetchOrders(true)}
+                                    disabled={ordersLoading}
+                                >
+                                    {ordersLoading
+                                        ? 'Refreshing...'
+                                        : '↻ Refresh'}
+                                </button>
+                            </div>
+
+                            {ordersLoading && orders.length === 0 ? (
                                 <p>Loading orders...</p>
                             ) : ordersError ? (
                                 <p>{ordersError}</p>
                             ) : orders.length === 0 ? (
                                 <p>You haven't placed any orders yet.</p>
                             ) : (
-                                orders.map((order) => (
-                                    <div className="order-card" key={order.orderId}>
-                                        <h3>Order #{order.orderId}</h3>
-                                        <p>Total: ₹{order.totalAmount}</p>
-                                        <p>Status: {order.orderStatus}</p>
-                                        <p>Payment: {order.paymentMethod}</p>
-                                        <p>Delivery Address: {order.deliveryAddress}</p>
-                                    </div>
-                                ))
+                                orders.map((order) => {
+
+                                    const statusSteps = [
+                                        {
+                                            status: 'PLACED',
+                                            label: 'Order Placed',
+                                            description:
+                                                'Your order has been received.'
+                                        },
+                                        {
+                                            status: 'PREPARING',
+                                            label: 'Preparing',
+                                            description:
+                                                'Your food is being prepared.'
+                                        },
+                                        {
+                                            status: 'OUT_FOR_DELIVERY',
+                                            label: 'Out for Delivery',
+                                            description:
+                                                'Your order is on the way.'
+                                        },
+                                        {
+                                            status: 'DELIVERED',
+                                            label: 'Delivered',
+                                            description:
+                                                'Your order has been delivered.'
+                                        }
+                                    ];
+
+                                    const currentStatus = (
+                                        order.orderStatus || 'PLACED'
+                                    ).toUpperCase();
+
+                                    const currentStepIndex =
+                                        statusSteps.findIndex(
+                                            step =>
+                                                step.status === currentStatus
+                                        );
+
+                                    return (
+                                        <div
+                                            className="order-card"
+                                            key={order.orderId}
+                                        >
+
+                                            <div className="order-card-header">
+                                                <h3>
+                                                    Order #{order.orderId}
+                                                </h3>
+
+                                                <span
+                                                    className={`order-status-badge ${
+                                                        currentStatus === 'DELIVERED'
+                                                            ? 'status-delivered'
+                                                            : 'status-active'
+                                                    }`}
+                                                >
+                                                    {currentStatus.replaceAll(
+                                                        '_',
+                                                        ' '
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <div className="order-customer-details">
+
+                                                <p>
+                                                    <strong>Name:</strong>{' '}
+                                                    {order.customerName}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Mobile:</strong>{' '}
+                                                    {order.phone}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Address:</strong>{' '}
+                                                    {order.deliveryAddress}
+                                                </p>
+
+                                            </div>
+
+                                            {/* ORDER TRACKING */}
+                                            <div className="order-tracking">
+
+                                                <h3>Track Your Order</h3>
+
+                                                {currentStepIndex === -1 ? (
+                                                    <p>
+                                                        Order status: {currentStatus}
+                                                    </p>
+                                                ) : (
+                                                    <div className="tracking-timeline">
+
+                                                        {statusSteps.map(
+                                                            (step, index) => (
+                                                                <div
+                                                                    className={`tracking-step ${
+                                                                        index <= currentStepIndex
+                                                                            ? 'completed'
+                                                                            : ''
+                                                                    } ${
+                                                                        index === currentStepIndex
+                                                                            ? 'current'
+                                                                            : ''
+                                                                    }`}
+                                                                    key={step.status}
+                                                                >
+
+                                                                    <div className="tracking-icon">
+                                                                        {index < currentStepIndex
+                                                                            ? '✓'
+                                                                            : index === currentStepIndex
+                                                                                ? '●'
+                                                                                : '○'}
+                                                                    </div>
+
+                                                                    <div className="tracking-info">
+                                                                        <h4>{step.label}</h4>
+                                                                        <p>{step.description}</p>
+                                                                    </div>
+
+                                                                </div>
+                                                            )
+                                                        )}
+
+                                                    </div>
+                                                )}
+
+                                            </div>
+
+                                            {/* ORDER ITEMS */}
+                                            <h3 className="ordered-items-heading">
+                                                Ordered Items
+                                            </h3>
+
+                                            {order.items?.map((item, index) => (
+                                                <div
+                                                    className="order-item-row"
+                                                    key={index}
+                                                >
+
+                                                    <img
+                                                        src={item.imageUrl}
+                                                        alt={item.foodName}
+                                                        className="order-food-image"
+                                                    />
+
+                                                    <div className="order-item-details">
+
+                                                        <h3>{item.foodName}</h3>
+
+                                                        <p>
+                                                            Quantity: {item.quantity}
+                                                        </p>
+
+                                                        <p>
+                                                            Amount: ₹
+                                                            {item.price * item.quantity}
+                                                        </p>
+
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            <div className="order-total">
+                                                <strong>
+                                                    Total Amount: ₹{order.totalAmount}
+                                                </strong>
+                                            </div>
+
+                                        </div>
+                                    );
+                                })
                             )}
                         </>
                     )}
 
                     {/* SAVED ADDRESSES */}
                     {activeSection === 'Saved Addresses' && (
-                        <>
+                        <div className="saved-addresses-section">
+
                             <h2>Saved Addresses</h2>
                             <p>Add or update your delivery address.</p>
 
-                            <textarea
-                                value={newAddress}
-                                onChange={(e) => setNewAddress(e.target.value)}
-                                placeholder="Enter your delivery address"
-                            />
-
-                            <button
-                                className="profile-save-button"
-                                onClick={handleSaveAddress}
-                            >
-                                {editingAddressId !== null ? 'Update Address' : 'Add Address'}
-                            </button>
-
                             {addressLoading ? (
                                 <p>Loading addresses...</p>
+                            ) : addresses.length === 0 ? (
+                                <p>No saved addresses yet.</p>
                             ) : (
                                 addresses.map((item) => (
-                                    <div className="order-card" key={item.addressId}>
+                                    <div
+                                        className="address-card"
+                                        key={item.addressId}
+                                    >
+
+                                        <h3>Home Address</h3>
                                         <p>{item.address}</p>
 
                                         <button
+                                            className="edit-btn"
                                             onClick={() => {
                                                 setNewAddress(item.address);
-                                                setEditingAddressId(item.addressId);
+                                                setEditingAddressId(
+                                                    item.addressId
+                                                );
                                             }}
                                         >
                                             Edit
                                         </button>
 
                                         <button
-                                            onClick={() => handleDeleteAddress(item.addressId)}
+                                            className="delete-btn"
+                                            onClick={() =>
+                                                handleDeleteAddress(
+                                                    item.addressId
+                                                )
+                                            }
                                         >
                                             Delete
                                         </button>
+
                                     </div>
                                 ))
                             )}
-                        </>
+
+                            <div className="add-address-form">
+
+                                <h3>
+                                    {editingAddressId !== null
+                                        ? 'Edit Address'
+                                        : 'Add New Address'}
+                                </h3>
+
+                                <textarea
+                                    value={newAddress}
+                                    onChange={(e) =>
+                                        setNewAddress(e.target.value)
+                                    }
+                                    placeholder="Enter your complete address"
+                                />
+
+                                <button
+                                    onClick={handleSaveAddress}
+                                    disabled={addressLoading}
+                                >
+                                    {editingAddressId !== null
+                                        ? 'Update Address'
+                                        : 'Save Address'}
+                                </button>
+
+                            </div>
+
+                        </div>
                     )}
 
                     {/* SETTINGS */}
                     {activeSection === 'Settings' && (
-                        <>
+                        <div className="settings-section">
+
                             <h2>Settings</h2>
-                            <p>Manage your QuickBite account settings here.</p>
-                        </>
+                            <p>Customize your QuickBite experience.</p>
+
+                            <div className="settings-option">
+
+                                <h3>🌐 Language</h3>
+                                <p>Select your preferred language</p>
+
+                                <select
+                                    value={language}
+                                    onChange={(e) =>
+                                        setLanguage(e.target.value)
+                                    }
+                                >
+                                    <option value="English">English</option>
+                                    <option value="Telugu">Telugu</option>
+                                </select>
+
+                            </div>
+
+                            <div className="settings-option">
+
+                                <h3>🎨 Theme</h3>
+                                <p>Choose your preferred appearance</p>
+
+                                <select
+                                    value={theme}
+                                    onChange={(e) =>
+                                        setTheme(e.target.value)
+                                    }
+                                >
+                                    <option value="Light">Light Mode</option>
+                                    <option value="Dark">Dark Mode</option>
+                                </select>
+
+                            </div>
+
+                        </div>
                     )}
 
                 </div>

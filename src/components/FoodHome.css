@@ -699,3 +699,18 @@
         transform: translate(-50%, 0);
     }
 }
+.food-time {
+  font-size: 14px;
+  color: #555;
+  margin: 5px 0;
+  text-align: center;
+}
+.food-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #333;
+}

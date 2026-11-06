@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 
 import About from './components/About';
@@ -9,17 +9,300 @@ import appleIcon from './assets/apple.png';
 import Welcome from './components/Welcome';
 import FoodHome from './components/FoodHome';
 
+const API_URL = 'http://localhost:8080';
+
 function App() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
+  // Restore saved login details
+  const [firstName, setFirstName] = useState(
+    localStorage.getItem('firstName') || ''
+  );
+
+  const [lastName, setLastName] = useState(
+    localStorage.getItem('lastName') || ''
+  );
+
+  const [email, setEmail] = useState(
+    localStorage.getItem('email') || ''
+  );
+
+  const [userId, setUserId] = useState(
+    localStorage.getItem('userId') || null
+  );
+
+  const [token, setToken] = useState(
+    localStorage.getItem('token') || ''
+  );
+
+  const [refreshToken, setRefreshToken] = useState(
+    localStorage.getItem('refreshToken') || ''
+  );
+
+  const [page, setPage] = useState(
+    localStorage.getItem('token') &&
+    localStorage.getItem('refreshToken')
+      ? 'home'
+      : 'auth'
+  );
+
+  const [sessionReady, setSessionReady] = useState(false);
+
   const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [message, setMessage] = useState('');
-  const [isLogin, setIsLogin] = useState(false);
-  const [page, setPage] = useState('auth');
+
+  const [isLogin, setIsLogin] = useState(
+    !!localStorage.getItem('token')
+  );
+
   const [showPassword, setShowPassword] = useState(false);
-  const [userId, setUserId] = useState(null);
+
+  const lastRefreshTime = useRef(0);
+  const refreshInProgress = useRef(null);
+  const logoutInProgress = useRef(false);
+
+  // Logout
+  const handleLogout = useCallback(async () => {
+    if (logoutInProgress.current) return;
+
+    logoutInProgress.current = true;
+
+    const savedRefreshToken =
+      localStorage.getItem('refreshToken');
+
+    // Clear local session immediately
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('firstName');
+    localStorage.removeItem('lastName');
+    localStorage.removeItem('email');
+
+    setToken('');
+    setRefreshToken('');
+    setUserId(null);
+    setFirstName('');
+    setLastName('');
+    setEmail('');
+    setPassword('');
+    setIsLogin(true);
+    setMessage('');
+    setPage('auth');
+    setSessionReady(true);
+
+    // Invalidate refresh token in backend
+    try {
+      if (savedRefreshToken) {
+        await fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            refreshToken: savedRefreshToken,
+          }),
+        });
+      }
+    } catch (error) {
+      console.error('Backend logout error:', error);
+    } finally {
+      logoutInProgress.current = false;
+    }
+  }, []);
+
+  // Refresh access token
+  const refreshSession = useCallback(async () => {
+    // Avoid multiple simultaneous refresh requests
+    if (refreshInProgress.current) {
+      return refreshInProgress.current;
+    }
+
+    const savedRefreshToken =
+      localStorage.getItem('refreshToken');
+
+    if (!savedRefreshToken) {
+      await handleLogout();
+      return false;
+    }
+
+    refreshInProgress.current = (async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/auth/refresh`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              refreshToken: savedRefreshToken,
+            }),
+          }
+        );
+
+        if (response.status === 401) {
+          await handleLogout();
+          return false;
+        }
+
+        if (!response.ok) {
+          // Temporary server/network error.
+          // Keep existing session and try again later.
+          console.error('Refresh request failed:', response.status);
+          return false;
+        }
+
+        const result = await response.json();
+
+        if (!result.token) {
+          console.error('Access token missing in refresh response');
+          return false;
+        }
+
+        localStorage.setItem('token', result.token);
+        setToken(result.token);
+
+        if (result.refreshToken) {
+          localStorage.setItem(
+            'refreshToken',
+            result.refreshToken
+          );
+          setRefreshToken(result.refreshToken);
+        }
+
+        return true;
+
+      } catch (error) {
+        console.error('Session refresh error:', error);
+        return false;
+      } finally {
+        refreshInProgress.current = null;
+      }
+    })();
+
+    return refreshInProgress.current;
+  }, [handleLogout]);
+
+  
+const apiFetch = useCallback(async (url, options = {}) => {
+  const makeRequest = (accessToken) => {
+    const headers = new Headers(options.headers || {});
+
+    if (accessToken) {
+      headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+
+    return fetch(url, {
+      ...options,
+      headers,
+    });
+  };
+
+  const currentToken = localStorage.getItem('token');
+  let response = await makeRequest(currentToken);
+
+  // Access token expired: refresh and retry once
+  if (response.status === 401) {
+    const refreshed = await refreshSession();
+
+    if (!refreshed) {
+      return response;
+    }
+
+    const newToken = localStorage.getItem('token');
+
+    response = await makeRequest(newToken);
+
+    // If the new token is also rejected, end the session
+    if (response.status === 401) {
+      await handleLogout();
+    }
+  }
+
+  return response;
+}, [refreshSession, handleLogout]);
+
+
+  // Restore session when app opens
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreSession = async () => {
+      const savedToken = localStorage.getItem('token');
+      const savedRefreshToken =
+        localStorage.getItem('refreshToken');
+
+      if (!savedToken || !savedRefreshToken) {
+        if (savedToken || savedRefreshToken) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('firstName');
+          localStorage.removeItem('lastName');
+          localStorage.removeItem('email');
+
+          setToken('');
+          setRefreshToken('');
+          setUserId(null);
+          setFirstName('');
+          setLastName('');
+          setEmail('');
+          setPage('auth');
+        }
+
+        if (!cancelled) {
+          setSessionReady(true);
+        }
+
+        return;
+      }
+
+      const success = await refreshSession();
+
+      if (!cancelled) {
+        if (!success && !localStorage.getItem('token')) {
+          setPage('auth');
+        }
+
+        setSessionReady(true);
+      }
+    };
+
+    restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshSession]);
+
+  // Track user activity and extend session
+  useEffect(() => {
+    const handleActivity = () => {
+      if (!localStorage.getItem('refreshToken')) return;
+
+      const now = Date.now();
+
+      // Refresh once every 10 minutes of activity
+      if (
+        now - lastRefreshTime.current >=
+        10 * 60 * 1000
+      ) {
+        lastRefreshTime.current = now;
+        refreshSession();
+      }
+    };
+
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('touchstart', handleActivity);
+    window.addEventListener('mousemove', handleActivity);
+
+    return () => {
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+      window.removeEventListener('mousemove', handleActivity);
+    };
+  }, [refreshSession]);
 
   // Automatically navigate from welcome page to home
   useEffect(() => {
@@ -39,13 +322,24 @@ function App() {
 
   // Home page
   if (page === 'home') {
+    if (!sessionReady) {
+      return <div>Restoring your session...</div>;
+    }
+
+    if (!token || !refreshToken) {
+      return null;
+    }
+
     return (
       <FoodHome
-    setPage={setPage}
-    firstName={firstName}
-    lastName={lastName}
-    email={email}
-    userId={userId}
+  setPage={setPage}
+  firstName={firstName}
+  lastName={lastName}
+  email={email}
+  userId={userId}
+  token={token}
+  apiFetch={apiFetch}
+  onLogout={handleLogout}
 />
     );
   }
@@ -67,20 +361,24 @@ function App() {
 
     if (!isLogin) {
       if (!firstName.trim() || !lastName.trim()) {
-        setMessage('Please fill in your first and last name.');
+        setMessage(
+          'Please fill in your first and last name.'
+        );
         return;
       }
 
       if (!agreed) {
-        setMessage('Please accept the terms & conditions.');
+        setMessage(
+          'Please accept the terms & conditions.'
+        );
         return;
       }
     }
 
     try {
       const url = isLogin
-        ? 'http://localhost:8080/api/users/login'
-        : 'http://localhost:8080/api/users/signup';
+        ? `${API_URL}/api/users/login`
+        : `${API_URL}/api/users/signup`;
 
       const requestBody = isLogin
         ? {
@@ -105,28 +403,56 @@ function App() {
       const result = await response.json();
 
       if (!response.ok) {
-    setMessage(
-        result.message ||
-        (isLogin
+        setMessage(
+          result.message ||
+          (isLogin
             ? 'Login failed. Please check your details.'
             : 'Signup failed. Please try again.')
-    );
-    return;
-}
+        );
+        return;
+      }
+
       if (isLogin) {
-    setUserId(result.userId);
-    setFirstName(result.firstName);
-    setLastName(result.lastName);
-    setEmail(result.email);
-    setPage('welcome');
-} else {
-    setUserId(result.userId);
-    setFirstName(firstName.trim());
-    setLastName(lastName.trim());
-    setEmail(email.trim());
-    setMessage('Account created successfully!');
-    setPage('welcome');
-}
+        if (!result.token || !result.refreshToken) {
+          setMessage(
+            'Login response is missing authentication tokens.'
+          );
+          return;
+        }
+
+        // Save tokens and user details
+        localStorage.setItem('token', result.token);
+        localStorage.setItem(
+          'refreshToken',
+          result.refreshToken
+        );
+        localStorage.setItem('userId', result.userId);
+        localStorage.setItem('firstName', result.firstName);
+        localStorage.setItem('lastName', result.lastName);
+        localStorage.setItem('email', result.email);
+
+        // Update React state
+        setToken(result.token);
+        setRefreshToken(result.refreshToken);
+        setUserId(result.userId);
+        setFirstName(result.firstName);
+        setLastName(result.lastName);
+        setEmail(result.email);
+
+        lastRefreshTime.current = Date.now();
+
+        setSessionReady(true);
+        setPage('welcome');
+
+      } else {
+        setMessage(
+          'Account created successfully! Please login.'
+        );
+        setIsLogin(true);
+        setPassword('');
+        setPage('auth');
+      }
+
     } catch (error) {
       console.error('Signup/Login error:', error);
 
@@ -153,7 +479,9 @@ function App() {
         </div>
 
         <div className="right-panel">
-          <h2>{isLogin ? 'Welcome Back' : 'Create an account'}</h2>
+          <h2>
+            {isLogin ? 'Welcome Back' : 'Create an account'}
+          </h2>
 
           <p className="login-text">
             {isLogin
@@ -179,14 +507,18 @@ function App() {
                   type="text"
                   placeholder="First Name"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) =>
+                    setFirstName(e.target.value)
+                  }
                 />
 
                 <input
                   type="text"
                   placeholder="Last Name"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) =>
+                    setLastName(e.target.value)
+                  }
                 />
               </div>
             )}
@@ -203,15 +535,21 @@ function App() {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
               />
 
               <button
                 type="button"
                 className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() =>
+                  setShowPassword(!showPassword)
+                }
                 aria-label={
-                  showPassword ? 'Hide password' : 'Show password'
+                  showPassword
+                    ? 'Hide password'
+                    : 'Show password'
                 }
               >
                 {showPassword ? '🙈' : '👁'}
@@ -239,9 +577,12 @@ function App() {
                 <input
                   type="checkbox"
                   checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
+                  onChange={(e) =>
+                    setAgreed(e.target.checked)
+                  }
                 />
-                I agree to the <a href="#">terms &amp; conditions</a>
+                I agree to the{' '}
+                <a href="#">terms &amp; conditions</a>
               </label>
             )}
 
