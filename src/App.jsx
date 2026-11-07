@@ -5,7 +5,7 @@ import './App.css';
 import About from './components/About';
 import landscape from './assets/quickbite-landscape.png';
 import googleIcon from './assets/google.png';
-import facebookIcon from "../assets/facebook.png";
+import facebookIcon from "./assets/facebook.png";
 import Welcome from './components/Welcome';
 import FoodHome from './components/FoodHome';
 
