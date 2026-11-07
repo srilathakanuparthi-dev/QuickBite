@@ -724,7 +724,7 @@ function renderFoods(items) {
                 onClick={() =>
                   updateCartQuantity(item.food.foodId, item.quantity - 1)
                 }
-                disabled={item.quantity <= 1}
+                
               >
                 −
               </button>

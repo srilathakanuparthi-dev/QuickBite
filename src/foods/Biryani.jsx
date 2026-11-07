@@ -54,6 +54,7 @@ function Biryani({ foods = [], onAddToCart }) {
         ...item,
         foodId: backendFood.foodId,
         price: backendFood.price,
+        image: backendFood.imageUrl || backendFood.image || item.image,
       };
     })
     .filter(Boolean);
