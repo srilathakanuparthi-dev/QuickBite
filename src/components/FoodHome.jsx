@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 import './FoodHome.css';
 import Checkout from './Checkout';
 import About from './About';

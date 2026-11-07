@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 import './Checkout.css';
 
 function Checkout({
