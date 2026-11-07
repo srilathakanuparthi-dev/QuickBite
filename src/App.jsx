@@ -5,7 +5,7 @@ import './App.css';
 import About from './components/About';
 import landscape from './assets/quickbite-landscape.png';
 import googleIcon from './assets/google.png';
-import appleIcon from './assets/apple.png';
+import facebookIcon from "../assets/facebook.png";
 import Welcome from './components/Welcome';
 import FoodHome from './components/FoodHome';
 
@@ -608,13 +608,13 @@ const apiFetch = useCallback(async (url, options = {}) => {
             </button>
 
             <button type="button">
-              <img
-                src={appleIcon}
-                alt="Apple"
-                className="social-icon"
-              />
-              Apple
-            </button>
+  <img
+    src={facebookIcon}
+    alt="Facebook"
+    className="social-icon"
+  />
+  Facebook
+</button>
           </div>
         </div>
       </div>
