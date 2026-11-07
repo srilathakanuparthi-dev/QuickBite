@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import './profile.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function Profile({
     firstName,
     lastName,
