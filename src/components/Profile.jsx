@@ -67,7 +67,7 @@ function Profile({
             setOrdersError('');
 
             const response = await apiFetch(
-                `http://localhost:8080/api/orders/user/${userId}`,
+                `${API_URL}/api/orders/user/${userId}`,
                 {
                     headers: {
                     }
@@ -120,7 +120,7 @@ function Profile({
             setAddressLoading(true);
 
             const response = await apiFetch(
-                `http://localhost:8080/api/addresses/${userId}`,
+                `${API_URL}/api/addresses/${userId}`,
                 {
                     headers: {
                     }
@@ -186,7 +186,7 @@ function Profile({
             setMessage('');
 
             const response = await apiFetch(
-                `http://localhost:8080/api/users/${userId}`,
+                `${API_URL}/api/users/${userId}`,
                 {
                     method: 'PUT',
                     headers: {
@@ -251,7 +251,7 @@ function Profile({
 
         try {
             const response = await apiFetch(
-                `http://localhost:8080/api/users/${userId}/change-password`,
+                `${API_URL}/api/users/${userId}/change-password`,
                 {
                     method: 'PUT',
                     headers: {
@@ -298,8 +298,8 @@ function Profile({
             const isEditing = editingAddressId !== null;
 
             const url = isEditing
-                ? `http://localhost:8080/api/addresses/${userId}/${editingAddressId}`
-                : `http://localhost:8080/api/addresses/${userId}`;
+                ? `${API_URL}/api/addresses/${userId}/${editingAddressId}`
+                : `${API_URL}/api/addresses/${userId}`;
 
             const response = await apiFetch(url, {
                 method: isEditing ? 'PUT' : 'POST',
@@ -341,7 +341,7 @@ function Profile({
 
         try {
             const response = await apiFetch(
-                `http://localhost:8080/api/addresses/${userId}/${addressId}`,
+                `${API_URL}/api/addresses/${userId}/${addressId}`,
                 {
                     method: 'DELETE',
                     headers: {

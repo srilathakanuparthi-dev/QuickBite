@@ -39,7 +39,7 @@ const fetchCart = useCallback(async () => {
     setCartLoading(true);
 
     const response = await apiFetch(
-      `http://localhost:8080/api/cart/${userId}`
+      `${API_URL}/api/cart/${userId}`
     );
 
     if (!response.ok) {
@@ -68,7 +68,7 @@ useEffect(() => {
       setOrdersError('');
 
       const response = await apiFetch(
-        `http://localhost:8080/api/orders/user/${userId}`,
+        `${API_URL}/api/orders/user/${userId}`,
         {
           headers: {
           }
@@ -100,7 +100,7 @@ const handleAddToCart = async (foodId) => {
 
     try {
         const response = await apiFetch(
-    `http://localhost:8080/api/cart/${userId}/add/${foodId}`,
+    `${API_URL}/api/cart/${userId}/add/${foodId}`,
     {
         method: "POST",
         headers: {
@@ -114,7 +114,7 @@ const handleAddToCart = async (foodId) => {
 
         // Refresh cart after adding item
        const cartResponse = await apiFetch(
-    `http://localhost:8080/api/cart/${userId}`,
+    `${API_URL}/api/cart/${userId}`,
     {
         headers: {
         }
@@ -141,12 +141,12 @@ const updateCartQuantity = async (foodId, quantity) => {
     }
 
     await apiFetch(
-      `http://localhost:8080/api/cart/${userId}/update/${foodId}/${quantity}`,
+      `${API_URL}/api/cart/${userId}/update/${foodId}/${quantity}`,
       { method: "PUT" }
     );
 
     const response = await apiFetch(
-    `http://localhost:8080/api/cart/${userId}`,
+    `${API_URL}/api/cart/${userId}`,
     {
         headers: {
         }
@@ -163,12 +163,12 @@ const updateCartQuantity = async (foodId, quantity) => {
 const removeFromCart = async (foodId) => {
   try {
     await apiFetch(
-      `http://localhost:8080/api/cart/${userId}/remove/${foodId}`,
+      `${API_URL}/api/cart/${userId}/remove/${foodId}`,
       { method: "DELETE" }
     );
 
     const response = await apiFetch(
-    `http://localhost:8080/api/cart/${userId}`,
+    `${API_URL}/api/cart/${userId}`,
     {
         headers: {
         }
@@ -252,7 +252,7 @@ const removeFromCart = async (foodId) => {
     const fetchFoods = async () => {
       try {
         const response = await fetch(
-          'http://localhost:8080/api/foods'
+          `${API_URL}/api/foods`
         );
 
         if (!response.ok) {

@@ -29,7 +29,7 @@ function Checkout({
                 setAddressLoading(true);
 
                 const response = await apiFetch(
-                    `http://localhost:8080/api/addresses/${userId}`,
+                    `${API_URL}/api/addresses/${userId}`,
                     {
                         headers: {
                         }
@@ -98,7 +98,7 @@ function Checkout({
             console.log('Cart Items:', cartItems);
 
             const response = await apiFetch(
-                `http://localhost:8080/api/orders/${userId}`,
+                `${API_URL}/api/orders/${userId}`,
                 {
                     method: 'POST',
                     headers: {
